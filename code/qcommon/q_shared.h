@@ -1159,6 +1159,10 @@ typedef struct playerState_s {
 								// used to twist the legs during strafing
 
 	vec3_t		grapplePoint;	// location of grapple to pull towards if PMF_GRAPPLE_PULL
+	float     grappleLength;
+	int       grapplePulling;
+	int       grappleTime;
+	vec3_t    grapplePushForce;
 
 	int			eFlags;			// copied to entityState_t->eFlags
 
@@ -1186,6 +1190,7 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
+	int			smdfFlags[16]; // nightz - our custom flags
 	int			ammo[MAX_WEAPONS];
 
 	int			generic1;
@@ -1304,6 +1309,7 @@ typedef struct entityState_s {
 
 	// for players
 	int		powerups;		// bit flags
+	int		smdfFlags;		// bit flags
 	int		weapon;			// determines weapon and flash model, etc
 	int		legsAnim;		// mask off ANIM_TOGGLEBIT
 	int		torsoAnim;		// mask off ANIM_TOGGLEBIT

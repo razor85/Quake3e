@@ -176,12 +176,13 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	iqmJoint_t		*joint;
 	iqmPose_t		*pose;
 	iqmBounds_t		*bounds;
+	iqmAnim_t     *anims;
 	unsigned short		*framedata;
 	char			*str;
 	int			i, j, k;
 	iqmTransform_t		*transform;
 	float			*mat, *matInv;
-	size_t			size, joint_names;
+	size_t			size, joint_names, anim_names;
 	byte			*dataPtr;
 	iqmData_t		*iqmData;
 	srfIQModel_t		*surface;
@@ -240,6 +241,9 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	LL( header->ofs_comment );
 	LL( header->num_extensions );
 	LL( header->ofs_extensions );
+	
+	ri.Printf(PRINT_WARNING, "R_LoadIQM: %s has %d animations\n",
+    mod_name, header->num_anims);
 
 	// check ioq3 joint limit
 	if ( header->num_joints > IQM_MAX_JOINTS ) {
@@ -477,6 +481,35 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			  mod_name, header->num_poses, header->num_joints );
 		return qfalse;
 	}
+	
+	anim_names = 0;
+
+	if ( header->num_anims )
+	{
+		// check and swap anims
+		if ( IQM_CheckRange( header, header->ofs_anims,
+					header->num_anims, sizeof(iqmAnim_t) ) ) {
+			return qfalse;
+		}
+		anims = (iqmAnim_t*)((byte *)header + header->ofs_anims);
+    for ( i = 0; i < header->num_anims; i++, anims++ ) {
+    unsigned int first_frame, num_frames;
+    float framerate;
+    unsigned int flags;
+			LL( anims->name );
+			LL( anims->first_frame );
+			LL( anims->num_frames );
+			LL( anims->framerate );
+			LL( anims->flags );
+
+			if( anims->name >= (int)header->num_text ) {
+				return qfalse;
+			}
+
+			anim_names += strlen( (char *)header + 
+				header->ofs_text + anims->name ) + 1;
+		}
+	}
 
 	joint_names = 0;
 
@@ -596,6 +629,14 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			}
 		}
 	}
+	if ( header->num_anims ) {
+		size += anim_names;
+		size += header->num_anims * sizeof(int);   // first_frame
+		size += header->num_anims * sizeof(int);   // num_frames
+		size += header->num_anims * sizeof(float); // framerate
+		size += header->num_anims * sizeof(int);   // flags
+	}
+
 	if( header->num_joints ) {
 		size += joint_names;								// joint names
 		size += header->num_joints * sizeof(int);			// joint parents
@@ -690,6 +731,34 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	} else if( header->num_meshes && header->num_frames == 0 ) {
 		iqmData->bounds = (float*)dataPtr;
 		dataPtr += 6 * sizeof(float);						// model bounds
+	}
+
+  if ( header->num_anims ) {
+		anims = (iqmAnim_t*)((byte *)header + header->ofs_anims);
+		iqmData->animNames = (char*)dataPtr;
+		iqmData->anims = (iqmAnim_t*)((byte*)dataPtr + anim_names);
+		iqmData->numAnims = header->num_anims;
+
+		iqmAnim_t* outAnim = iqmData->anims;
+
+		int outNameIndex = 0;
+		char* outName = iqmData->animNames;
+
+		for( i = 0; i < header->num_anims; i++, anims++ ) {
+			char *name = (char *)header + header->ofs_text + anims->name;
+			int len = strlen( name ) + 1;
+			Com_Memcpy( outName, name, len );
+
+			outAnim->name = outNameIndex;
+			outAnim->first_frame = anims->first_frame;
+			outAnim->num_frames = anims->num_frames;
+			outAnim->framerate = anims->framerate;
+			outAnim->flags = anims->flags;
+
+			outAnim++;
+			outName += len;
+			outNameIndex += len;
+		}
 	}
 
 	if( header->num_meshes )
@@ -1346,7 +1415,7 @@ void RB_IQMSurfaceAnim( surfaceType_t *surface ) {
 				vtxMat[10] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 10];
 				vtxMat[11] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 11];
 
-				for( j = 1; j < 3; j++ ) {
+				for( j = 1; j < 4; j++ ) {
 					if ( blendWeights[j] <= 0.0f ) {
 						break;
 					}

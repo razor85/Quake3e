@@ -161,6 +161,7 @@ typedef struct bot_entitystate_s
 	int		event;			// impulse events -- muzzle flashes, footsteps, etc
 	int		eventParm;		// even parameter
 	int		powerups;		// bit flags
+	int		smdfFlags;		// bit flags
 	int		weapon;			// determines weapon and flash model, etc
 	int		legsAnim;		// mask off ANIM_TOGGLEBIT
 	int		torsoAnim;		// mask off ANIM_TOGGLEBIT

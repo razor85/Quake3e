@@ -680,7 +680,6 @@ const netField_t entityStateFields[] =
 { NETF(event), 10 },
 { NETF(angles2[1]), 0 },
 { NETF(eType), 8 },
-{ NETF(torsoAnim), 8 },
 { NETF(eventParm), 8 },
 { NETF(legsAnim), 8 },
 { NETF(groundEntityNum), GENTITYNUM_BITS },
@@ -697,6 +696,7 @@ const netField_t entityStateFields[] =
 { NETF(origin[2]), 0 },
 { NETF(solid), 24 },
 { NETF(powerups), MAX_POWERUPS },
+{ NETF(smdfFlags), 16 },
 { NETF(modelindex), 8 },
 { NETF(otherEntityNum2), GENTITYNUM_BITS },
 { NETF(loopSound), 8 },
@@ -1001,7 +1001,6 @@ netField_t	playerStateFields[] =
 { PSF(legsTimer), 8 },
 { PSF(pm_time), -16 },
 { PSF(eventSequence), 16 },
-{ PSF(torsoAnim), 8 },
 { PSF(movementDir), 4 },
 { PSF(events[0]), 8 },
 { PSF(legsAnim), 8 },
@@ -1024,7 +1023,6 @@ netField_t	playerStateFields[] =
 { PSF(pm_type), 8 },					
 { PSF(delta_angles[0]), 16 },
 { PSF(delta_angles[2]), 16 },
-{ PSF(torsoTimer), 12 },
 { PSF(eventParms[0]), 8 },
 { PSF(eventParms[1]), 8 },
 { PSF(clientNum), 8 },
@@ -1033,6 +1031,12 @@ netField_t	playerStateFields[] =
 { PSF(grapplePoint[0]), 0 },
 { PSF(grapplePoint[1]), 0 },
 { PSF(grapplePoint[2]), 0 },
+{ PSF(grappleLength), 0 },
+{ PSF(grapplePulling), 1 },
+{ PSF(grappleTime), 32 },
+{ PSF(grapplePushForce[0]), 0 },
+{ PSF(grapplePushForce[1]), 0 },
+{ PSF(grapplePushForce[2]), 0 },
 { PSF(jumppad_ent), GENTITYNUM_BITS },
 { PSF(loopSound), 16 }
 };
@@ -1050,6 +1054,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	int				persistantbits;
 	int				ammobits;
 	int				powerupbits;
+	int				smdfFlagsBits;
 	int				numFields;
 	netField_t		*field;
 	const int		*fromF, *toF;
@@ -1134,6 +1139,12 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 			powerupbits |= 1<<i;
 		}
 	}
+	smdfFlagsBits = 0;
+  for (i = 0; i < 16; i++) {
+		if (to->smdfFlags[i] != from->smdfFlags[i]) {
+			smdfFlagsBits |= 1<<i;
+		}
+	}
 
 	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
@@ -1180,6 +1191,16 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		for (i=0 ; i<MAX_POWERUPS ; i++)
 			if (powerupbits & (1<<i) )
 				MSG_WriteLong( msg, to->powerups[i] );
+	} else {
+		MSG_WriteBits( msg, 0, 1 );	// no change
+	}
+
+	if ( smdfFlagsBits ) {
+		MSG_WriteBits( msg, 1, 1 );	// changed
+		MSG_WriteBits( msg, smdfFlagsBits, 16 );
+    for (i = 0; i < 16; i++)
+			if (smdfFlagsBits & (1<<i) )
+				MSG_WriteLong( msg, to->smdfFlags[i] );
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
@@ -1320,6 +1341,17 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 			for (i=0 ; i<MAX_POWERUPS ; i++) {
 				if (bits & (1<<i) ) {
 					to->powerups[i] = MSG_ReadLong(msg);
+				}
+			}
+		}
+
+		// parse smdfFlags
+		if ( MSG_ReadBits( msg, 1 ) ) {
+			LOG("PS_SMDFFLAGS");
+			bits = MSG_ReadBits (msg, 16);
+      for (i = 0; i < 16; i++) {
+				if (bits & (1<<i) ) {
+					to->smdfFlags[i] = MSG_ReadLong(msg);
 				}
 			}
 		}

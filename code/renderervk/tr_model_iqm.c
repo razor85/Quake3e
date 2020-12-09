@@ -704,8 +704,9 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			Q_strncpyz(surface->name, str + mesh->name, sizeof (surface->name));
 			Q_strlwr(surface->name); // lowercase the surface name so skin compares are faster
 			surface->shader = R_FindShader( str + mesh->material, LIGHTMAP_NONE, qtrue );
-			if( surface->shader->defaultShader )
+			if ( surface->shader->defaultShader ) {
 				surface->shader = tr.defaultShader;
+			}
 			surface->data = iqmData;
 			surface->first_vertex = mesh->first_vertex;
 			surface->num_vertexes = mesh->num_vertexes;
@@ -1347,7 +1348,7 @@ void RB_IQMSurfaceAnim( surfaceType_t *surface ) {
 				vtxMat[10] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 10];
 				vtxMat[11] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 11];
 
-				for( j = 1; j < 3; j++ ) {
+				for( j = 1; j < 4; j++ ) {
 					if ( blendWeights[j] <= 0.0f ) {
 						break;
 					}

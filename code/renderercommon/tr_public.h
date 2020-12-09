@@ -36,6 +36,16 @@ typedef enum {
 	REF_UNLOAD_DLL
 } refShutdownCode_t;
 
+// Nightz - IQM
+typedef struct {
+	char name[MAX_QPATH];
+  unsigned int first_frame; 
+  unsigned int num_frames;
+  float framerate;
+  unsigned int flags;
+} animationData_t;
+// End Nightz
+
 typedef struct {
 	// called before the library is unloaded
 	// if the system is just reconfiguring, pass destroyWindow = qfalse,
@@ -97,6 +107,10 @@ typedef struct {
 	int		(*LerpTag)( orientation_t *tag,  qhandle_t model, int startFrame, int endFrame, 
 					 float frac, const char *tagName );
 	void	(*ModelBounds)( qhandle_t model, vec3_t mins, vec3_t maxs );
+
+	// Nightz - IQM
+	int (*GetAnimations)(qhandle_t model, animationData_t*, int* numAnims);
+	// End Nightz
 
 #ifdef __USEA3D
 	void    (*A3D_RenderGeometry) (void *pVoidA3D, void *pVoidGeom, void *pVoidMat, void *pVoidGeomStatus);

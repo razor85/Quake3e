@@ -60,7 +60,6 @@ enum {
   CGAME_EVENT_EDITHUD
 };
 
-
 /*
 ==================================================================
 
@@ -183,6 +182,8 @@ typedef enum {
 	CG_R_ADDLINEARLIGHTTOSCENE,
 	CG_IS_RECORDING_DEMO,
 	CG_TRAP_GETVALUE = COM_TRAP_GETVALUE,
+
+	CG_GET_ANIMATIONS = 120
 
 } cgameImport_t;
 
