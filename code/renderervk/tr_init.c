@@ -1859,6 +1859,10 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.LerpTag = R_LerpTag;
 	re.ModelBounds = R_ModelBounds;
 
+	// Nightz - IQM
+	re.GetAnimations = R_GetAnimations;
+	// End Nightz
+
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;

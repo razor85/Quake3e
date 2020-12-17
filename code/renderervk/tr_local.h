@@ -808,6 +808,12 @@ typedef struct {
 	float		*invBindJoints; // [num_joints * 12]
 	iqmTransform_t	*poses; // [num_frames * num_poses]
 	float		*bounds;
+
+	// Animations
+	char *animNames;
+	unsigned int numAnims;
+	iqmAnim_t *anims;
+
 } iqmData_t;
 
 // inter-quake-model surface
@@ -954,6 +960,10 @@ int			R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFr
 void		R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs );
 
 void		R_Modellist_f (void);
+
+// Nightz - IQM
+int R_GetAnimations( qhandle_t handle, animationData_t* data, int* numAnims );
+// End Nightz
 
 //====================================================
 

@@ -493,20 +493,20 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		}
 		anims = (iqmAnim_t*)((byte *)header + header->ofs_anims);
     for ( i = 0; i < header->num_anims; i++, anims++ ) {
-    unsigned int first_frame, num_frames;
-    float framerate;
-    unsigned int flags;
+      unsigned int first_frame, num_frames;
+      float framerate;
+      unsigned int flags;
 			LL( anims->name );
 			LL( anims->first_frame );
 			LL( anims->num_frames );
 			LL( anims->framerate );
 			LL( anims->flags );
 
-			if( anims->name >= (int)header->num_text ) {
+			if ( anims->name >= (int)header->num_text ) {
 				return qfalse;
 			}
-
-			anim_names += strlen( (char *)header + 
+      
+			anim_names += strlen( (char*)header + 
 				header->ofs_text + anims->name ) + 1;
 		}
 	}
@@ -631,10 +631,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	}
 	if ( header->num_anims ) {
 		size += anim_names;
-		size += header->num_anims * sizeof(int);   // first_frame
-		size += header->num_anims * sizeof(int);   // num_frames
-		size += header->num_anims * sizeof(float); // framerate
-		size += header->num_anims * sizeof(int);   // flags
+		size += header->num_anims * sizeof(iqmAnim_t);
 	}
 
 	if( header->num_joints ) {
@@ -739,8 +736,6 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		iqmData->anims = (iqmAnim_t*)((byte*)dataPtr + anim_names);
 		iqmData->numAnims = header->num_anims;
 
-		iqmAnim_t* outAnim = iqmData->anims;
-
 		int outNameIndex = 0;
 		char* outName = iqmData->animNames;
 
@@ -749,13 +744,13 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			int len = strlen( name ) + 1;
 			Com_Memcpy( outName, name, len );
 
+			iqmAnim_t* outAnim = &iqmData->anims[i];
 			outAnim->name = outNameIndex;
 			outAnim->first_frame = anims->first_frame;
 			outAnim->num_frames = anims->num_frames;
 			outAnim->framerate = anims->framerate;
 			outAnim->flags = anims->flags;
-
-			outAnim++;
+			
 			outName += len;
 			outNameIndex += len;
 		}

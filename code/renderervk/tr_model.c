@@ -1065,6 +1065,46 @@ int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFram
 	return qtrue;
 }
 
+/*
+====================
+R_GetAnimations
+====================
+*/
+int R_GetAnimations( qhandle_t handle, animationData_t* data, int* maxAnims ) {
+	model_t* model;
+
+	if ( maxAnims == NULL || data == NULL )
+		return qfalse;
+
+	model = R_GetModelByHandle( handle );
+	if ( model->type == MOD_IQM ) {
+		iqmData_t* iqm = (iqmData_t*) model->modelData;
+    for ( int i = 0; i < iqm->numAnims; ++i ) {
+			if ( i >= *maxAnims )
+				break;
+
+			iqmAnim_t* anim = &iqm->anims[i];
+			animationData_t* targetAnim = &data[i];
+
+			char* animName = &iqm->animNames[anim->name];
+			int nameLength = strlen(animName);
+			if ( nameLength >= MAX_QPATH )
+				nameLength = MAX_QPATH - 1;
+
+      Com_Memcpy(targetAnim->name, animName, nameLength);
+			targetAnim->name[nameLength] = 0;
+			targetAnim->first_frame = anim->first_frame;
+			targetAnim->num_frames = anim->num_frames;
+			targetAnim->framerate = anim->framerate;
+			targetAnim->flags = anim->flags;
+		}
+
+		*maxAnims = iqm->numAnims;
+		return qtrue;
+	} else {
+		return qfalse;
+	}
+}
 
 /*
 ====================

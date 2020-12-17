@@ -679,6 +679,13 @@ const netField_t entityStateFields[] =
 { NETF(apos.trBase[0]), 0 },
 { NETF(event), 10 },
 { NETF(angles2[1]), 0 },
+{ NETF(grapplePoint[0]), 0 },
+{ NETF(grapplePoint[1]), 0 },
+{ NETF(grapplePoint[2]), 0 },
+{ NETF(grapplePulling), 1 },
+{ NETF(grapplePushForce[0]), 0 },
+{ NETF(grapplePushForce[1]), 0 },
+{ NETF(grapplePushForce[2]), 0 },
 { NETF(eType), 8 },
 { NETF(eventParm), 8 },
 { NETF(legsAnim), 8 },
@@ -696,10 +703,10 @@ const netField_t entityStateFields[] =
 { NETF(origin[2]), 0 },
 { NETF(solid), 24 },
 { NETF(powerups), MAX_POWERUPS },
-{ NETF(smdfFlags), 16 },
 { NETF(modelindex), 8 },
 { NETF(otherEntityNum2), GENTITYNUM_BITS },
 { NETF(loopSound), 8 },
+{ NETF(smdfFlags), 32 },
 { NETF(generic1), 8 },
 { NETF(origin2[2]), 0 },
 { NETF(origin2[0]), 0 },
@@ -998,7 +1005,7 @@ netField_t	playerStateFields[] =
 { PSF(weaponTime), -16 },
 { PSF(origin[2]), 0 },
 { PSF(velocity[2]), 0 },
-{ PSF(legsTimer), 8 },
+{ PSF(legsTimer), 16 },
 { PSF(pm_time), -16 },
 { PSF(eventSequence), 16 },
 { PSF(movementDir), 4 },
@@ -1019,6 +1026,7 @@ netField_t	playerStateFields[] =
 { PSF(damageYaw), 8 },
 { PSF(damagePitch), 8 },
 { PSF(damageCount), 8 },
+{ PSF(smdfFlags), 32 },
 { PSF(generic1), 8 },
 { PSF(pm_type), 8 },					
 { PSF(delta_angles[0]), 16 },
@@ -1054,7 +1062,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	int				persistantbits;
 	int				ammobits;
 	int				powerupbits;
-	int				smdfFlagsBits;
 	int				numFields;
 	netField_t		*field;
 	const int		*fromF, *toF;
@@ -1139,12 +1146,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 			powerupbits |= 1<<i;
 		}
 	}
-	smdfFlagsBits = 0;
-  for (i = 0; i < 16; i++) {
-		if (to->smdfFlags[i] != from->smdfFlags[i]) {
-			smdfFlagsBits |= 1<<i;
-		}
-	}
 
 	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
@@ -1191,16 +1192,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		for (i=0 ; i<MAX_POWERUPS ; i++)
 			if (powerupbits & (1<<i) )
 				MSG_WriteLong( msg, to->powerups[i] );
-	} else {
-		MSG_WriteBits( msg, 0, 1 );	// no change
-	}
-
-	if ( smdfFlagsBits ) {
-		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteBits( msg, smdfFlagsBits, 16 );
-    for (i = 0; i < 16; i++)
-			if (smdfFlagsBits & (1<<i) )
-				MSG_WriteLong( msg, to->smdfFlags[i] );
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
@@ -1341,17 +1332,6 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 			for (i=0 ; i<MAX_POWERUPS ; i++) {
 				if (bits & (1<<i) ) {
 					to->powerups[i] = MSG_ReadLong(msg);
-				}
-			}
-		}
-
-		// parse smdfFlags
-		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_SMDFFLAGS");
-			bits = MSG_ReadBits (msg, 16);
-      for (i = 0; i < 16; i++) {
-				if (bits & (1<<i) ) {
-					to->smdfFlags[i] = MSG_ReadLong(msg);
 				}
 			}
 		}

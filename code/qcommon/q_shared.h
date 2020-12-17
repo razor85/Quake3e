@@ -1115,6 +1115,7 @@ typedef struct {
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
 #define	MAX_WEAPONS				16		
+#define	MAX_SMDF_FLAGS 16
 
 #define	MAX_PS_EVENTS			2
 
@@ -1190,9 +1191,9 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			smdfFlags[16]; // nightz - our custom flags
 	int			ammo[MAX_WEAPONS];
 
+	int			smdfFlags; // nightz - our custom flags
 	int			generic1;
 	int			loopSound;
 	int			jumppad_ent;	// jumppad entity hit this frame
@@ -1288,6 +1289,12 @@ typedef struct entityState_s {
 
 	vec3_t	angles;
 	vec3_t	angles2;
+
+  // Nightz - Custom fields exposed to the client.
+	vec3_t grapplePoint;
+	int    grapplePulling;
+	vec3_t grapplePushForce;
+	// End Nightz
 
 	int		otherEntityNum;	// shotgun sources, etc
 	int		otherEntityNum2;
